@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in - PC Power Controller{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <section class="panel auth-panel">
+    <div class="auth-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M12 3v8"></path>
+        <path d="M6.3 6.3a8 8 0 1 0 11.4 0"></path>
+      </svg>
+      <span>PC Power Controller</span>
+    </div>
+    <h1>Sign in</h1>
+    <p class="lede">Use your account to reach the power control console.</p>
+
+    {% if form.errors %}
+      <div class="form-error" role="alert">Invalid username or password.</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" class="input" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" class="input" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="power-btn btn-compact">Sign in</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

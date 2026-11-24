@@ -1,0 +1,4 @@
+cd backend
+python manage.py migrate
+python manage.py create_initial_user priyam844 --password "REPLACE_WITH_STRONG_PASSWORD"
+Or set INITIAL_USERNAME / INITIAL_PASSWORD env vars and run python manage.py create_initial_user. Then run python manage.py create_device --name pc-controller-01 to get the one-time ESP8266 token for config.h.

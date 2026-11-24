@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070b0f">
+    <title>{% block title %}PC Power Controller{% endblock %}</title>
+    <link href="{% static 'css/style.css' %}?v=9" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <a class="brand" href="{% url 'dashboard' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 3v8"></path>
+              <path d="M6.3 6.3a8 8 0 1 0 11.4 0"></path>
+            </svg>
+            <span>PC Power Controller</span>
+          </a>
+          {% if user.is_authenticated %}
+            <div class="top-actions">
+              <span id="device-chip" class="device-chip is-offline">
+                <i id="chip-dot" class="dot is-off"></i>
+                <span id="chip-label" class="chip-label">Device offline</span>
+              </span>
+              {% if user.is_staff or user.is_superuser %}
+                <a class="nav-link" href="{% url 'device-token' %}">Device token</a>
+              {% endif %}
+              <a class="nav-link" href="{% url 'settings' %}">Settings</a>
+              <button id="logout-button" class="btn-quiet" type="button">Sign out</button>
+            </div>
+          {% endif %}
+        </div>
+      </header>
+      <main class="shell">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <script src="{% static 'js/common.js' %}?v=9"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

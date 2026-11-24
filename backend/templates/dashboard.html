@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - PC Power Controller{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-head">
+  <h1>Power control</h1>
+  <p class="muted">Signed in as {{ request.user.username }}</p>
+</div>
+
+<div class="console-grid">
+  <section class="panel panel-main">
+    <div class="panel-head">
+      <h2>PC state</h2>
+      <span id="state-tag" class="tag is-unknown">UNKNOWN</span>
+    </div>
+    <p id="pc-state" class="state-value state-unknown">UNKNOWN</p>
+    <p id="pc-caption" class="state-caption">Waiting for the ESP8266 to report in.</p>
+    <div id="signal" class="signal is-offline" aria-hidden="true"></div>
+    <div class="action-zone">
+      <div id="slide-power" class="slide-power is-power-on is-disabled" aria-disabled="true">
+        <div id="slide-fill" class="slide-fill" aria-hidden="true"></div>
+        <span id="slide-label" class="slide-label" role="status">Slide to power on</span>
+        <svg class="slide-chevrons" viewBox="0 0 42 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 5l6 7-6 7"></path>
+          <path d="M15 5l6 7-6 7"></path>
+          <path d="M27 5l6 7-6 7"></path>
+        </svg>
+        <button id="slide-knob" class="slide-knob" type="button" aria-label="Slide to power on" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h13"></path>
+            <path d="M13 6l6 6-6 6"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="feedback" class="feedback" role="status"></div>
+      <div id="command-state" class="command-state">No active command.</div>
+    </div>
+  </section>
+
+  <aside class="panel panel-side">
+    <h2 class="panel-title">Device telemetry</h2>
+    <div class="telemetry">
+      <div class="telemetry-row">
+        <span class="telemetry-label">Controller</span>
+        <span id="device-name" class="telemetry-value small-text">Not registered</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Link</span>
+        <span class="telemetry-value"><i id="device-dot" class="dot is-off"></i><span id="device-state">OFFLINE</span></span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Last contact</span>
+        <span id="last-seen" class="telemetry-value small-text">Never</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Relay</span>
+        <span class="telemetry-value"><i id="relay-dot" class="dot is-off"></i><span id="relay-state">INACTIVE</span></span>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/dashboard.js' %}?v=9"></script>
+{% endblock %}

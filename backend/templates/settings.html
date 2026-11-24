@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Settings - PC Power Controller{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Account settings</h1>
+  <p class="muted">Signed in as {{ request.user.username }}</p>
+</div>
+
+<div class="settings-grid">
+  <section class="panel settings-intro">
+    <h2>Credentials</h2>
+    <p>Update the username and password used to reach this console.</p>
+    <div class="notice">
+      <i class="dot is-warn"></i>
+      <span>Changing credentials signs you out. Sign in again with the new details.</span>
+    </div>
+  </section>
+
+  <section class="panel settings-form-panel">
+    <div id="settings-feedback" class="feedback" role="status"></div>
+    <form id="settings-form">
+      {% csrf_token %}
+      <div class="field">
+        <label for="current-password">Current password</label>
+        <input type="password" id="current-password" class="input" autocomplete="current-password" required>
+      </div>
+      <div class="field">
+        <label for="new-username">New username <span class="optional">(optional)</span></label>
+        <input type="text" id="new-username" class="input" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="new-password">New password</label>
+        <input type="password" id="new-password" class="input" autocomplete="new-password" required>
+      </div>
+      <div class="field">
+        <label for="confirm-password">Confirm new password</label>
+        <input type="password" id="confirm-password" class="input" autocomplete="new-password" required>
+      </div>
+      <div class="stack-actions">
+        <button type="submit" class="power-btn btn-compact">Update credentials</button>
+        <a href="{% url 'dashboard' %}" class="btn-quiet">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}
