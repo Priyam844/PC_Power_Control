@@ -55,6 +55,7 @@ The dashboard never sends the device token. Browser users authenticate with Djan
 ├── ESP8266_PC_Power_Controller_Project_Plan.md   # Original design document
 ├── README.md                                    # This file
 ├── create_new_user.txt                          # Short account setup reminder
+├── render.yaml                                  # Render Blueprint for one-click deploy
 ├── backend/
 │   ├── .env.example                             # Tracked local environment template
 │   ├── accounts/                                # Login, dashboard, status/power APIs
@@ -333,9 +334,9 @@ Application constants:
 
 ## Deployment
 
-The app is compatible with a Render Web Service plus PostgreSQL. The same approach works on other Python PaaS hosts.
+The app is compatible with a Render Web Service plus Supabase PostgreSQL. The repository includes `render.yaml`, so **New → Blueprint** can deploy it directly. Create the service, then supply the real Supabase **Transaction pooler** URL when Render prompts for `DATABASE_URL`. Render generates `DJANGO_SECRET_KEY` and exposes `RENDER_EXTERNAL_HOSTNAME`, which settings use automatically for `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. Health checks use `/health/`.
 
-Recommended Render settings, with **Root Directory** set to `backend`:
+The same service can be created manually with these settings and **Root Directory** set to `backend`:
 
 **Build command**
 
@@ -356,9 +357,8 @@ Required production environment variables:
 ```text
 DJANGO_SECRET_KEY=<long-random-value>
 DEBUG=0
-ALLOWED_HOSTS=your-app.onrender.com
-CSRF_TRUSTED_ORIGINS=https://your-app.onrender.com
 DATABASE_URL=<supabase-transaction-pooler-url-with-password>
+RENDER_EXTERNAL_HOSTNAME=<provided-automatically-by-render>
 ```
 
 The app requires Supabase PostgreSQL everywhere. SQLite is no longer a fallback. Use the Transaction pooler URL so both Render and local machines connect over IPv4 without hitting the Session pooler's client cap.
