@@ -53,9 +53,14 @@ The dashboard never sends the device token. Browser users authenticate with Djan
 ```text
 .
 ├── ESP8266_PC_Power_Controller_Project_Plan.md   # Original design document
+├── .python-version                              # Render Python version
 ├── README.md                                    # This file
+├── RENDER_DEPLOYMENT.md                         # Render values checklist
 ├── create_new_user.txt                          # Short account setup reminder
+├── manage.py                                    # Root Django command shim
 ├── render.yaml                                  # Render Blueprint for one-click deploy
+├── requirements.txt                             # Root requirements shim
+├── wsgi.py                                      # Root WSGI entrypoint
 ├── backend/
 │   ├── .env.example                             # Tracked local environment template
 │   ├── accounts/                                # Login, dashboard, status/power APIs
@@ -336,20 +341,24 @@ Application constants:
 
 The app is compatible with a Render Web Service plus Supabase PostgreSQL. The repository includes `render.yaml`, so **New → Blueprint** can deploy it directly. Create the service, then supply the real Supabase **Transaction pooler** URL when Render prompts for `DATABASE_URL`. Render generates `DJANGO_SECRET_KEY` and exposes `RENDER_EXTERNAL_HOSTNAME`, which settings use automatically for `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. Health checks use `/health/`.
 
-The same service can be created manually with these settings and **Root Directory** set to `backend`:
+The same service can be created manually with **Root Directory** left empty. The repository root contains `requirements.txt`, `manage.py`, `wsgi.py`, and `.python-version` shims so Render's default root-based commands work without a subdirectory setting. See `RENDER_DEPLOYMENT.md` for the exact values.
 
 **Build command**
 
 ```bash
-pip install -r requirements.txt
-python manage.py collectstatic --noinput
-python manage.py migrate --noinput
+pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
 ```
 
 **Start command**
 
 ```bash
-gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+python -m gunicorn wsgi:application --bind 0.0.0.0:$PORT
+```
+
+**Python version**
+
+```text
+3.12.10
 ```
 
 Required production environment variables:
