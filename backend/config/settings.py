@@ -2,8 +2,10 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-local-development-only")
 
@@ -11,7 +13,10 @@ DEBUG = os.environ.get("DEBUG", "1").strip().lower() in {"1", "true", "yes", "on
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver, 192.168.0.103").split(",")
+    for host in os.environ.get(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1,testserver,192.168.0.103,10.0.27.133,10.198.222.3",
+    ).split(",")
     if host.strip()
 ]
 
@@ -65,15 +70,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL must be set. Supabase PostgreSQL is required.")
+
+DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0)}
+DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 STATIC_DEV_USERNAME = os.environ.get("STATIC_DEV_USERNAME", "admin")
 STATIC_DEV_PASSWORD = os.environ.get("STATIC_DEV_PASSWORD", "change-me-in-local-dev")

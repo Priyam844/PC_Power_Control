@@ -56,6 +56,7 @@ The dashboard never sends the device token. Browser users authenticate with Djan
 ├── README.md                                    # This file
 ├── create_new_user.txt                          # Short account setup reminder
 ├── backend/
+│   ├── .env.example                             # Tracked local environment template
 │   ├── accounts/                                # Login, dashboard, status/power APIs
 │   ├── config/                                  # Django settings and URL root
 │   ├── devices/                                 # Device model, token auth, device APIs
@@ -71,7 +72,7 @@ The dashboard never sends the device token. Browser users authenticate with Djan
         └── esp8266_debug.ino                    # Diagnostics sketch, tracked/sanitized
 ```
 
-`*.local.ino` files are ignored by Git. They can be used for local copies containing real Wi-Fi credentials and a device token.
+`*.local.ino` and `*.local.txt` files are ignored by Git for local credentials. Do not keep a second `.ino` file inside a sketch folder: Arduino compiles every `.ino` there and will report redefinition errors. Local backups now use `.local.txt`.
 
 ---
 
@@ -85,7 +86,7 @@ The dashboard never sends the device token. Browser users authenticate with Djan
 - Login is rate-limited to 5/min and power requests to 10/min.
 - The development-only static login backend is enabled when `DEBUG=True`, or explicitly with `ENABLE_STATIC_DEV_USER=1`. Keep it disabled in production.
 - The default static development password in source is a placeholder. Set `STATIC_DEV_PASSWORD` locally instead of relying on the default.
-- `db.sqlite3`, `.env`, and `*.local.ino` are ignored. Do not commit real secrets, database files, or token values.
+- `db.sqlite3`, `.env`, and `*.local.ino` are ignored. Supabase PostgreSQL is required for both local and deployed runs; do not commit database passwords, connection strings, or token values.
 
 If credentials were ever pasted into chat, logs, or an issue, rotate them: regenerate the device token, change the Wi-Fi password if needed, and update the ignored local firmware copies.
 
@@ -102,9 +103,13 @@ cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+Copy-Item .env.example .env
+notepad .env
 python manage.py migrate
 python manage.py check
 ```
+
+`backend/.env.example` is a tracked template. Copy it to `backend/.env`, replace `[YOUR-DATABASE-PASSWORD]` with your real Supabase DB password, and save. `.env` is gitignored. Use Supabase **Connect → Transaction pooler** (port `6543`) for `DATABASE_URL`, not the Direct connection or Session pooler. The Direct host is IPv6-only and usually fails on local Windows networks; Session pooler limits clients to the pool size, often `15`, and raises `EMAXCONNSESSION` when local processes and Render reconnect. Settings close DB connections after each request and disable server-side cursors for transaction pooling.
 
 Create a website account:
 
@@ -124,7 +129,7 @@ Start the server on the LAN:
 
 ```powershell
 $env:DEBUG = "1"
-$env:ALLOWED_HOSTS = "localhost,127.0.0.1,192.168.0.103"
+$env:ALLOWED_HOSTS = "localhost,127.0.0.1,192.168.0.103,10.0.27.133,10.198.222.3"
 python manage.py runserver 0.0.0.0:8000
 ```
 
@@ -301,15 +306,15 @@ Content-Type: application/json
 
 ## Configuration reference
 
-Environment variables are read in `backend/config/settings.py`.
+Environment variables are read in `backend/config/settings.py`. For local runs, `backend/.env` is loaded automatically; for Render, set the same variables in the dashboard.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Development fallback | Set a strong random value in production |
 | `DEBUG` | `1` | Must be `0` in production |
-| `ALLOWED_HOSTS` | `localhost,127.0.0.1,testserver,192.168.0.103` | Comma-separated hostnames/IPs |
+| `ALLOWED_HOSTS` | `localhost,127.0.0.1,testserver,192.168.0.103,10.0.27.133,10.198.222.3` | Comma-separated hostnames/IPs; add your current PC LAN IP if it changes |
 | `CSRF_TRUSTED_ORIGINS` | Empty | Comma-separated HTTPS origins |
-| `DATABASE_URL` | Empty | PostgreSQL URL; SQLite is used when unset |
+| `DATABASE_URL` | Required | Full Supabase Transaction pooler PostgreSQL URL (port `6543`); SQLite is not used |
 | `STATIC_DEV_USERNAME` | `admin` | Development-only login username |
 | `STATIC_DEV_PASSWORD` | `change-me-in-local-dev` | Development-only login password |
 | `ENABLE_STATIC_DEV_USER` | Empty | Set to `1`/`true` to enable dev login when `DEBUG=False` |
@@ -343,7 +348,7 @@ python manage.py migrate --noinput
 **Start command**
 
 ```bash
-gunicorn config.wsgi:application
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
 ```
 
 Required production environment variables:
@@ -353,8 +358,10 @@ DJANGO_SECRET_KEY=<long-random-value>
 DEBUG=0
 ALLOWED_HOSTS=your-app.onrender.com
 CSRF_TRUSTED_ORIGINS=https://your-app.onrender.com
-DATABASE_URL=<postgresql-connection-url>
+DATABASE_URL=<supabase-transaction-pooler-url-with-password>
 ```
+
+The app requires Supabase PostgreSQL everywhere. SQLite is no longer a fallback. Use the Transaction pooler URL so both Render and local machines connect over IPv4 without hitting the Session pooler's client cap.
 
 Do not enable `ENABLE_STATIC_DEV_USER` in production.
 
@@ -370,13 +377,19 @@ Render Free limitations:
 
 - Free web services may spin down after inactivity, causing a delay on the next request.
 - Device polling generates inbound requests and often keeps the service awake, but this is not a guaranteed uptime arrangement.
-- Free PostgreSQL plans may expire or have storage limits.
+- Free Supabase projects may pause after periods of low database activity; restore them from the Supabase Dashboard if that happens.
 - Render Free does not provide reliable Shell/one-off job access. Use `/device-token/` in the browser to create or rotate the token.
 - For dependable 24/7 control, use a paid always-on service and database, or run the backend on the local LAN PC itself.
 
 ---
 
 ## Troubleshooting
+
+### Database reports `EMAXCONNSESSION`
+
+- Change `DATABASE_URL` to the Supabase **Transaction pooler** URL on port `6543`.
+- Do not use the Session pooler (`5432`) for this app; its client cap is commonly `15`.
+- Restart every Django/Render process after changing the URL so stale session-mode connections are released.
 
 ### Device shows OFFLINE
 

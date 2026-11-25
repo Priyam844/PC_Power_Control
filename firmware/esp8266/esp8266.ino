@@ -7,7 +7,7 @@
 constexpr uint8_t RELAY_PIN = D2;
 constexpr uint8_t SENSOR_PIN = D5;
 
-constexpr bool RELAY_ACTIVE_LOW = true;
+constexpr bool RELAY_ACTIVE_LOW = false;
 constexpr bool SENSOR_ACTIVE_LOW = false;
 
 constexpr unsigned long RELAY_PULSE_MS = 400;

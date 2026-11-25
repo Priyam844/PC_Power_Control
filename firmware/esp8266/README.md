@@ -2,6 +2,8 @@
 
 Open `firmware/esp8266/esp8266.ino`. You only need to edit the small configuration block near the top (currently lines 7-23). Do not change the request paths or the `Authorization: Token ...` header.
 
+Keep only one `.ino` file in this folder. Arduino compiles every `.ino` in an open sketch, so local backups must use `.local.txt` instead.
+
 ## Values to fill in
 
 | Where | Example | Put this |

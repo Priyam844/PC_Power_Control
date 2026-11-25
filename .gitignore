@@ -3,6 +3,7 @@ __pycache__/
 *.sqlite3
 .env
 .env.*
+!.env.example
 *.local.ino
 *.local.txt
 backend/staticfiles/
